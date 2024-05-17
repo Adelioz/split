@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+
+  split:
+    build:
+      dockerfile: ./Dockerfile
+      context: .
+    ports:
+      - 65000:65000
+
+  mongodb:
+    image: mongo:7.0.1-rc0
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USERNAME:-test_user}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD:-p4ssw0rd}
+      - MONGO_INITDB_DATABASE=${DB_DATABASE:-testing}
+    volumes:
+      - "./db_data:/data/db"
+    ports:
+      - 27017:27017
+    command: mongod --quiet --logpath /dev/null
