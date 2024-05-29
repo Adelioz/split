@@ -26,6 +26,9 @@ func main() {
 		logger.Sugar().Fatalf("Failed to connect to database %s", err)
 	}
 
+	// mock repo
+	// r, _ := mock.NewRepository()
+
 	s := service.NewService(r)
 
 	router := handlers.NewRouter(logger, s)

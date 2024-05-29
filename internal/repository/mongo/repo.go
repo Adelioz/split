@@ -2,11 +2,13 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/Adelioz/split/internal/models"
 	"github.com/Adelioz/split/internal/service"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -30,7 +32,23 @@ func (r *repository) AddUser(ctx context.Context, user models.User) error {
 
 // GetUser implements service.Repository.
 func (r *repository) GetUser(ctx context.Context, id string) (models.User, error) {
-	panic("unimplemented")
+	collection := r.usersCollection()
+
+	c := collection.FindOne(ctx, bson.M{"_id": id})
+	u := models.User{}
+
+	err := c.Decode(&u)
+
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		err = fmt.Errorf("user %s: %w", id, service.ErrNotFound)
+		return u, err
+	}
+
+	if err != nil {
+		return u, err
+	}
+
+	return u, nil
 }
 
 // UpdateUser implements service.Repository.
