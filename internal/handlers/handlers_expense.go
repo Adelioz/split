@@ -9,16 +9,26 @@ import (
 	"github.com/Adelioz/split/internal/service"
 	"github.com/Adelioz/split/pkg/logging"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
 func AddExpense(s *service.Service) http.Handler {
 
+	// type addExpenseRequest struct {
+	// 	ID        string    `json:"id" validate:"required"`
+	// 	RoomID    string    `json:"roomId"` // TBD required(?)
+	// 	DaddyID   string    `json:"daddyId" validate:"required"`
+	// 	Currency  string    `json:"currency" validate:"required"`
+	// 	Tag       string    `json:"tag"`
+	// 	CreatedAt time.Time `json:"createdAt"` // TBD required(?)
+	// 	Title     string    `json:"title" validate:"required"`
+	// 	Desc      string    `json:"desc"`
+	// }
+
 	type addExpenseRequest struct {
-		ID        string    `json:"id" validate:"required"`
-		RoomID    string    `json:"roomId"` // TBD required(?)
-		DaddyID   string    `json:"daddyId" validate:"required"`
 		Currency  string    `json:"currency" validate:"required"`
+		Amount    float64   `json:"amount" validate:"required"`
 		Tag       string    `json:"tag"`
 		CreatedAt time.Time `json:"createdAt"` // TBD required(?)
 		Title     string    `json:"title" validate:"required"`
@@ -52,10 +62,9 @@ func AddExpense(s *service.Service) http.Handler {
 		}
 
 		exp := models.Expense{
-			ID:        request.ID,
-			RoomID:    request.RoomID,
-			DaddyID:   request.DaddyID,
+			ID:        uuid.New().String(),
 			Currency:  request.Currency,
+			Amount:    request.Amount,
 			Tag:       request.Tag,
 			CreatedAt: request.CreatedAt,
 			Title:     request.Title,
@@ -82,6 +91,7 @@ func UpdateExpense(s *service.Service) http.Handler {
 		RoomID    string    `json:"roomId"`
 		DaddyID   string    `json:"daddyId"`
 		Currency  string    `json:"currency"`
+		Amount    float64   `json:"amount"`
 		Tag       string    `json:"tag"`
 		CreatedAt time.Time `json:"createdAt"`
 		Title     string    `json:"title"`
@@ -118,6 +128,7 @@ func UpdateExpense(s *service.Service) http.Handler {
 			RoomID:    request.RoomID,
 			DaddyID:   request.DaddyID,
 			Currency:  request.Currency,
+			Amount:    request.Amount,
 			Tag:       request.Tag,
 			CreatedAt: request.CreatedAt,
 			Title:     request.Title,
@@ -127,7 +138,7 @@ func UpdateExpense(s *service.Service) http.Handler {
 
 		// TODO: - constant errors handling (repo.go)
 		if err != nil {
-			logging.S(ctx).Warnf("Failed to AddExpense: %s.", err)
+			logging.S(ctx).Warnf("Failed to UpdateExpense: %s.", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

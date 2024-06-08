@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Adelioz/split/internal/models"
-	"github.com/google/uuid"
 )
 
 type Service struct {
@@ -21,8 +20,8 @@ func NewService(repo Repository) *Service {
 
 func (s *Service) AddUser(ctx context.Context, user models.User) error {
 	err := s.repo.AddUser(ctx, user)
-	id := uuid.New()
-	user.ID = id.String()
+	// id := uuid.New()
+	// user.ID = id.String()
 	return err
 }
 
@@ -34,23 +33,6 @@ func (s *Service) UpdateUser(ctx context.Context, user models.User) error {
 func (s *Service) GetUser(ctx context.Context, id string) (models.User, error) {
 	user, err := s.repo.GetUser(ctx, id)
 	return user, err
-}
-
-// Room
-
-func (s *Service) AddRoom(ctx context.Context, room models.Room) error {
-	err := s.repo.AddRoom(ctx, room)
-	return err
-}
-
-func (s *Service) UpdateRoom(ctx context.Context, room models.Room) error {
-	err := s.repo.UpdateRoom(ctx, room)
-	return err
-}
-
-func (s *Service) GetRoom(ctx context.Context, id string) (models.Room, error) {
-	room, err := s.repo.GetRoom(ctx, id)
-	return room, err
 }
 
 // Expes
@@ -73,4 +55,21 @@ func (s *Service) GetExpense(ctx context.Context, id string) (models.Expense, er
 func (s *Service) DeleteExpense(ctx context.Context, id string) (models.Expense, error) {
 	exp, err := s.repo.DeleteExpense(ctx, id)
 	return exp, err
+}
+
+// Room
+
+func (s *Service) AddRoom(ctx context.Context, room models.Room) error {
+	err := s.repo.AddRoom(ctx, room)
+	return err
+}
+
+func (s *Service) UpdateRoom(ctx context.Context, room models.Room) error {
+	err := s.repo.UpdateRoom(ctx, room)
+	return err
+}
+
+func (s *Service) GetRoom(ctx context.Context, id string) (models.Room, error) {
+	room, err := s.repo.GetRoom(ctx, id)
+	return room, err
 }

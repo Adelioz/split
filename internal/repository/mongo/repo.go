@@ -18,7 +18,8 @@ type repository struct {
 	c *mongo.Client
 }
 
-// AddUser implements service.Repository.
+// User
+
 func (r *repository) AddUser(ctx context.Context, user models.User) error {
 	collection := r.usersCollection()
 	_, err := collection.InsertOne(ctx, user)
@@ -30,7 +31,6 @@ func (r *repository) AddUser(ctx context.Context, user models.User) error {
 	return nil
 }
 
-// GetUser implements service.Repository.
 func (r *repository) GetUser(ctx context.Context, id string) (models.User, error) {
 	collection := r.usersCollection()
 
@@ -51,42 +51,103 @@ func (r *repository) GetUser(ctx context.Context, id string) (models.User, error
 	return u, nil
 }
 
-// UpdateUser implements service.Repository.
 func (r *repository) UpdateUser(ctx context.Context, user models.User) error {
 	panic("unimplemented")
 }
 
-// AddExpense implements service.Repository.
+// Expense
+
 func (r *repository) AddExpense(ctx context.Context, exp models.Expense) error {
-	panic("unimplemented")
+	collection := r.expenseCollection()
+	_, err := collection.InsertOne(ctx, exp)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// AddRoom implements service.Repository.
+func (r *repository) UpdateExpense(ctx context.Context, exp models.Expense) error {
+	collection := r.expenseCollection()
+
+	filter := bson.M{"_id": exp.ID}
+
+	exp.ID = ""
+
+	update := bson.M{
+		"$set": exp,
+	}
+
+	updateResult, err := collection.UpdateOne(ctx, filter, update)
+
+	if updateResult.MatchedCount == 0 {
+		err := fmt.Errorf("expense %s: not found", exp.ID)
+		return err
+	}
+
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		err := fmt.Errorf("expense %s: %w", exp.ID, service.ErrNotFound)
+		return err
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *repository) GetExpense(ctx context.Context, id string) (models.Expense, error) {
+	collection := r.expenseCollection()
+
+	c := collection.FindOne(ctx, bson.M{"_id": id})
+	e := models.Expense{}
+
+	err := c.Decode(&e)
+
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		err := fmt.Errorf("expense %s: %w", id, service.ErrNotFound)
+		return e, err
+	}
+
+	if err != nil {
+		return e, err
+	}
+
+	return e, nil
+}
+
+func (r *repository) DeleteExpense(ctx context.Context, id string) (models.Expense, error) {
+	collection := r.expenseCollection()
+
+	c := collection.FindOneAndDelete(ctx, bson.M{"_id": id})
+	e := models.Expense{}
+
+	err := c.Decode(&e)
+
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		err := fmt.Errorf("expense %s: %w", id, service.ErrNotFound)
+		return e, err
+	}
+
+	if err != nil {
+		return e, err
+	}
+
+	return e, nil
+}
+
+// Room
+
 func (r *repository) AddRoom(ctx context.Context, room models.Room) error {
 	panic("unimplemented")
 }
 
-// DeleteExpense implements service.Repository.
-func (r *repository) DeleteExpense(ctx context.Context, id string) (models.Expense, error) {
-	panic("unimplemented")
-}
-
-// GetExpense implements service.Repository.
-func (r *repository) GetExpense(ctx context.Context, id string) (models.Expense, error) {
-	panic("unimplemented")
-}
-
-// GetRoom implements service.Repository.
 func (r *repository) GetRoom(ctx context.Context, id string) (models.Room, error) {
 	panic("unimplemented")
 }
 
-// UpdateExpense implements service.Repository.
-func (r *repository) UpdateExpense(ctx context.Context, exp models.Expense) error {
-	panic("unimplemented")
-}
-
-// UpdateRoom implements service.Repository.
 func (r *repository) UpdateRoom(ctx context.Context, room models.Room) error {
 	panic("unimplemented")
 }
@@ -123,5 +184,10 @@ func NewRepository(uri string) (service.Repository, error) {
 
 func (r *repository) usersCollection() *mongo.Collection {
 	const collection = "users"
+	return r.c.Database("testing").Collection(collection)
+}
+
+func (r *repository) expenseCollection() *mongo.Collection {
+	const collection = "expenses"
 	return r.c.Database("testing").Collection(collection)
 }
